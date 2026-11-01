@@ -42,9 +42,9 @@ import java.io.File;
 import java.lang.invoke.MethodHandles;
 
 public class MeteorClient implements ClientModInitializer {
-    public static final String MOD_ID = "meteor-client";
+    public static final String MOD_ID = "client33";
     public static final ModMetadata MOD_META;
-    public static final String NAME;
+    public static final String NAME = "Client33";
     public static final Version VERSION;
     public static final String BUILD_NUMBER;
 
@@ -59,7 +59,7 @@ public class MeteorClient implements ClientModInitializer {
     static {
         MOD_META = FabricLoader.getInstance().getModContainer(MOD_ID).orElseThrow().getMetadata();
 
-        NAME = MOD_META.getName();
+        NAME = "Client33";
         LOG = LoggerFactory.getLogger(NAME);
 
         String versionString = MOD_META.getVersion().getFriendlyString();

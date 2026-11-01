@@ -25,7 +25,7 @@ public class PacketInflaterTransformer extends AsmTransformer {
     @Override
     public void transform(ClassNode klass) {
         MethodNode method = getMethod(klass, decodeMethod);
-        if (method == null) error("[Meteor Client] Could not find method PacketInflater.decode()");
+        if (method == null) error("[Client33] Could not find method PacketInflater.decode()");
 
         int newCount = 0;
         LabelNode label = new LabelNode(new Label());
@@ -53,6 +53,6 @@ public class PacketInflaterTransformer extends AsmTransformer {
             }
         }
 
-        error("[Meteor Client] Failed to modify PacketInflater.decode()");
+        error("[Client33] Failed to modify PacketInflater.decode()");
     }
 }

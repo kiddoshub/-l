@@ -178,7 +178,55 @@ public class Renderer2D {
         triangles.quad(i1, i2, i3, i4);
     }
 
-    public void texQuad(double x, double y, double width, double height, double rotation, TextureRegion region, Color color) {
-        texQuad(x, y, width, height, rotation, region.x1, region.y1, region.x2, region.y2, color);
+    public void roundedQuad(double x, double y, double width, double height, double radius, Color color) {
+        if (radius <= 0) {
+            quad(x, y, width, height, color);
+            return;
+        }
+        if (radius > height / 2) radius = height / 2;
+        if (radius > width / 2) radius = width / 2;
+
+        int segments = Math.max(4, (int) (radius * 2));
+        // Simplified rounded rect using quads + triangles approximation
+        // Draw center
+        quad(x + radius, y, width - radius * 2, height, color);
+        quad(x, y + radius, radius, height - radius * 2, color);
+        quad(x + width - radius, y + radius, radius, height - radius * 2, color);
+        // Corners
+        for (int i = 0; i < segments; i++) {
+            double angle1 = Math.PI / 2 * i / segments;
+            double angle2 = Math.PI / 2 * (i + 1) / segments;
+            double x1c = x + radius - Math.cos(angle1) * radius;
+            double y1c = y + radius - Math.sin(angle1) * radius;
+            double x2c = x + radius - Math.cos(angle2) * radius;
+            double y2c = y + radius - Math.sin(angle2) * radius;
+            triangle(x + radius, y + radius, x1c, y1c, x2c, y2c, color);
+
+            x1c = x + width - radius + Math.sin(angle1) * radius;
+            y1c = y + radius - Math.cos(angle1) * radius;
+            x2c = x + width - radius + Math.sin(angle2) * radius;
+            y2c = y + radius - Math.cos(angle2) * radius;
+            triangle(x + width - radius, y + radius, x1c, y1c, x2c, y2c, color);
+
+            x1c = x + width - radius + Math.cos(angle1) * radius;
+            y1c = y + height - radius + Math.sin(angle1) * radius;
+            x2c = x + width - radius + Math.cos(angle2) * radius;
+            y2c = y + height - radius + Math.sin(angle2) * radius;
+            triangle(x + width - radius, y + height - radius, x1c, y1c, x2c, y2c, color);
+
+            x1c = x + radius - Math.sin(angle1) * radius;
+            y1c = y + height - radius + Math.cos(angle1) * radius;
+            x2c = x + radius - Math.sin(angle2) * radius;
+            y2c = y + height - radius + Math.cos(angle2) * radius;
+            triangle(x + radius, y + height - radius, x1c, y1c, x2c, y2c, color);
+        }
+    }
+
+    public void shadow(double x, double y, double width, double height, double radius, int size, Color color) {
+        for (int i = 0; i < size; i++) {
+            double alpha = color.a * (1.0 - (double) i / size) * 0.25;
+            Color c = new Color(color.r, color.g, color.b, (int) alpha);
+            roundedQuad(x - i, y - i, width + i * 2, height + i * 2, radius + i, c);
+        }
     }
 }

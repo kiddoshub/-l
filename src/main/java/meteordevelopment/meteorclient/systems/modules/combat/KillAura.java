@@ -333,14 +333,26 @@ public class KillAura extends Module {
             return;
         }
 
-        attacking = true;
-        if (rotation.get() == RotationMode.Always) Rotations.rotate(Rotations.getYaw(primary), Rotations.getPitch(primary, Target.Body));
+        if (rotation.get() == RotationMode.Always) {
+            Rotations.rotate(Rotations.getYaw(primary), Rotations.getPitch(primary, Target.Body));
+        }
         if (pauseOnCombat.get() && PathManagers.get().isPathing() && !wasPathing) {
             PathManagers.get().pause();
             wasPathing = true;
         }
 
-        if (delayCheck()) targets.forEach(this::attack);
+        if (delayCheck()) {
+            if (rotation.get() == RotationMode.OnHit || rotation.get() == RotationMode.None) {
+                // Ensure rotation for hit
+                if (rotation.get() == RotationMode.OnHit) {
+                    Rotations.rotate(Rotations.getYaw(primary), Rotations.getPitch(primary, Target.Body), () -> targets.forEach(this::attackDirect));
+                } else {
+                    targets.forEach(this::attackDirect);
+                }
+            } else {
+                targets.forEach(this::attackDirect);
+            }
+        }
     }
 
     @EventHandler
@@ -424,23 +436,27 @@ public class KillAura extends Module {
             return false;
         }
 
-        float delay = (customDelay.get()) ? hitDelay.get() : 0.5f;
-        if (tpsSync.get()) delay /= (TickRate.INSTANCE.getTickRate() / 20);
-
         if (customDelay.get()) {
+            float delay = hitDelay.get();
+            if (tpsSync.get()) delay /= Math.max(0.01f, (TickRate.INSTANCE.getTickRate() / 20f));
             if (hitTimer < delay) {
                 hitTimer++;
                 return false;
             } else return true;
-        } else return mc.player.getAttackCooldownProgress(delay) >= 1;
+        } else {
+            if (tpsSync.get()) {
+                float tps = Math.max(1f, TickRate.INSTANCE.getTickRate());
+                float adjusted = 0.5f / (tps / 20f);
+                return mc.player.getAttackCooldownProgress(adjusted) >= 1.0f;
+            }
+            return mc.player.getAttackCooldownProgress(0.5f) >= 1.0f;
+        }
     }
 
-    private void attack(Entity target) {
+    private void attackDirect(Entity target) {
         if (rotation.get() == RotationMode.OnHit) Rotations.rotate(Rotations.getYaw(target), Rotations.getPitch(target, Target.Body));
-
         mc.interactionManager.attackEntity(mc.player, target);
         mc.player.swingHand(Hand.MAIN_HAND);
-
         hitTimer = 0;
     }
 
