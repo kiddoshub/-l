@@ -1,7 +1,3 @@
-/*
- * This file is part of the Meteor Client distribution (https://github.com/MeteorDevelopment/meteor-client).
- * Copyright (c) Meteor Development.
- */
 
 package meteordevelopment.meteorclient.systems.modules.world;
 
@@ -64,9 +60,6 @@ public class EndermanLook extends Module {
         }
     }
 
-    /**
-     * @see EndermanEntity#isPlayerStaring(PlayerEntity)
-     */
     private boolean angleCheck(EndermanEntity entity) {
         Vec3d vec3d = mc.player.getRotationVec(1.0F).normalize();
         Vec3d vec3d2 = new Vec3d(entity.getX() - mc.player.getX(), entity.getEyeY() - mc.player.getEyeY(), entity.getZ() - mc.player.getZ());

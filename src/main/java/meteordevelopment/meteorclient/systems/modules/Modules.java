@@ -1,7 +1,3 @@
-/*
- * This file is part of the Meteor Client distribution (https://github.com/MeteorDevelopment/meteor-client).
- * Copyright (c) Meteor Development.
- */
 
 package meteordevelopment.meteorclient.systems.modules;
 
@@ -205,10 +201,6 @@ public class Modules extends System<Modules> {
         this.moduleToBind = moduleToBind;
     }
 
-    /***
-     * @see meteordevelopment.meteorclient.commands.commands.BindCommand
-     * For ensuring we don't instantly bind the module to the enter key.
-     */
     public void awaitKeyRelease() {
         this.awaitingKeyRelease = true;
     }

@@ -1,7 +1,3 @@
-/*
- * This file is part of the Meteor Client distribution (https://github.com/MeteorDevelopment/meteor-client).
- * Copyright (c) Meteor Development.
- */
 
 package meteordevelopment.meteorclient.utils.player;
 
@@ -46,9 +42,6 @@ public class ChatUtils {
         return PREFIX;
     }
 
-    /**
-     * Registers a custom prefix to be used when calling from a class in the specified package. When null is returned from the supplier the default Meteor prefix is used.
-     */
     @SuppressWarnings("unused")
     public static void registerCustomPrefix(String packageName, Supplier<Text> supplier) {
         for (Pair<String, Supplier<Text>> pair : customPrefixes) {
@@ -61,9 +54,6 @@ public class ChatUtils {
         customPrefixes.add(new Pair<>(packageName, supplier));
     }
 
-    /**
-     * The package name must match exactly to the one provided through {@link #registerCustomPrefix(String, Supplier)}.
-     */
     @SuppressWarnings("unused")
     public static void unregisterCustomPrefix(String packageName) {
         customPrefixes.removeIf(pair -> pair.getLeft().equals(packageName));
@@ -75,16 +65,10 @@ public class ChatUtils {
 
     // Player
 
-    /**
-     * Sends the message as if the user typed it into chat and adds it to the chat history.
-     */
     public static void sendPlayerMsg(String message) {
         sendPlayerMsg(message, true);
     }
 
-    /**
-     * Sends the message as if the user typed it into chat.
-     */
     public static void sendPlayerMsg(String message, boolean addToHistory) {
         if (addToHistory) mc.inGameHud.getChatHud().addToMessageHistory(message);
 

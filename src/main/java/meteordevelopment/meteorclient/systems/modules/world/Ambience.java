@@ -1,7 +1,3 @@
-/*
- * This file is part of the Meteor Client distribution (https://github.com/MeteorDevelopment/meteor-client).
- * Copyright (c) Meteor Development.
- */
 
 package meteordevelopment.meteorclient.systems.modules.world;
 
@@ -16,9 +12,6 @@ import meteordevelopment.meteorclient.utils.render.color.SettingColor;
 import net.minecraft.client.render.DimensionEffects;
 import net.minecraft.util.math.Vec3d;
 
-/**
- * @author Walaryne
- */
 public class Ambience extends Module {
     private final SettingGroup sgSky = settings.createGroup("Sky");
     private final SettingGroup sgWorld = settings.createGroup("World");

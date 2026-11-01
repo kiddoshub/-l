@@ -1,7 +1,3 @@
-/*
- * This file is part of the Meteor Client distribution (https://github.com/MeteorDevelopment/meteor-client).
- * Copyright (c) Meteor Development.
- */
 
 package meteordevelopment.meteorclient.systems.modules.movement;
 
@@ -188,9 +184,6 @@ public class Flight extends Module {
         }
     }
 
-    /**
-     * @see ServerPlayNetworkHandler#onPlayerMove(PlayerMoveC2SPacket)
-     */
     @EventHandler
     private void onSendPacket(PacketEvent.Send event) {
         if (!(event.packet instanceof PlayerMoveC2SPacket packet) || antiKickMode.get() != AntiKickMode.Packet) return;

@@ -1,7 +1,3 @@
-/*
- * This file is part of the Meteor Client distribution (https://github.com/MeteorDevelopment/meteor-client).
- * Copyright (c) Meteor Development.
- */
 
 package meteordevelopment.meteorclient.systems.proxies;
 
@@ -99,13 +95,6 @@ public class Proxy implements ISerializable<Proxy> {
         return Utils.resolveAddress(this.address.get(), this.port.get());
     }
 
-    /**
-     *  Return codes: <br>
-     *  0: In the process of checking <br>
-     *  1: The proxy is alive <br>
-     *  2: The proxy is dead <br>
-     *  3: The check timed out
-     */
     public int checkStatus() {
         if (status == Status.CHECKING) return 0;
         status = Status.CHECKING;

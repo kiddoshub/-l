@@ -1,7 +1,3 @@
-/*
- * This file is part of the Meteor Client distribution (https://github.com/MeteorDevelopment/meteor-client).
- * Copyright (c) Meteor Development.
- */
 
 package meteordevelopment.meteorclient.utils.network;
 
@@ -15,14 +11,6 @@ import java.net.http.HttpResponse;
 import java.util.Map;
 import java.util.Optional;
 
-/**
- * Failed {@link HttpResponse} object that is returned from {@link Http} {@code sendRequest} methods when
- * {@link HttpClient#send(HttpRequest, BodyHandler)} throws an exception instead of returning an error response, such
- * as when the connection is interrupted or an I/O error occurs. This object is used to prevent {@code sendRequest}
- * methods from returning {@code null}.
- *
- * @author Crosby
- */
 public record FailedHttpResponse<T>(HttpRequest request, Exception exception) implements HttpResponse<T> {
     @Override
     public int statusCode() {

@@ -1,7 +1,3 @@
-/*
- * This file is part of the Meteor Client distribution (https://github.com/MeteorDevelopment/meteor-client).
- * Copyright (c) Meteor Development.
- */
 
 package meteordevelopment.meteorclient.utils.misc;
 
@@ -79,10 +75,6 @@ public class Names {
         return blockNames.computeIfAbsent(block, block1 -> StringHelper.stripTextFormat(I18n.translate(block1.getTranslationKey())));
     }
 
-    /**
-     * key -> entry, else key -> translation, else key -> identifier toString()
-     * @author Crosby
-     */
     @SuppressWarnings("StringEquality")
     public static String get(RegistryKey<Enchantment> enchantment) {
         return enchantmentKeyNames.computeIfAbsent(enchantment, enchantment1 -> Optional.ofNullable(MinecraftClient.getInstance().getNetworkHandler())

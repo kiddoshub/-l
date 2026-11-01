@@ -1,7 +1,3 @@
-/*
- * This file is part of the Meteor Client distribution (https://github.com/MeteorDevelopment/meteor-client).
- * Copyright (c) Meteor Development.
- */
 
 package meteordevelopment.meteorclient.utils.notebot.decoder;
 
@@ -16,32 +12,16 @@ import java.io.*;
 
 // https://github.com/koca2000/NoteBlockAPI/blob/master/src/main/java/com/xxmicloxx/NoteBlockAPI/utils/NBSDecoder.java
 
-/**
- * Utils for reading Note Block Studio data
- *
- */
 public class NBSSongDecoder extends SongDecoder {
 
     public static final int NOTE_OFFSET = 33; // Magic value (https://opennbs.org/nbs)
 
-    /**
-     * Parses a Song from a Note Block Studio project file (.nbs)
-     * @see Song
-     * @param songFile .nbs file
-     * @return Song object representing a Note Block Studio project
-     */
     @Override
     @NotNull
     public Song parse(File songFile) throws Exception {
         return parse(new FileInputStream(songFile));
     }
 
-    /**
-     * Parses a Song from an InputStream and a Note Block Studio project file (.nbs)
-     * @see Song
-     * @param inputStream of a .nbs file
-     * @return Song object representing the given .nbs file
-     */
     @NotNull
     private Song parse(InputStream inputStream) throws Exception {
         Multimap<Integer, Note> notesMap = MultimapBuilder.linkedHashKeys().arrayListValues().build();
@@ -111,9 +91,6 @@ public class NBSSongDecoder extends SongDecoder {
         return new Song(notesMap, title, author);
     }
 
-    /**
-     * Sets a note at a tick in a song
-     */
     private static void setNote(int ticks, Note note, Multimap<Integer, Note> notesMap) {
         notesMap.put(ticks, note);
     }

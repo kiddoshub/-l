@@ -1,7 +1,3 @@
-/*
- * This file is part of the Meteor Client distribution (https://github.com/MeteorDevelopment/meteor-client).
- * Copyright (c) Meteor Development.
- */
 
 package meteordevelopment.meteorclient.systems.modules.misc;
 
@@ -127,7 +123,6 @@ public class DiscordPresence extends Module {
         runInMainMenu = true;
     }
 
-    /** Registers a custom state to be used when the current screen is a class in the specified package. */
     public static void registerCustomState(String packageName, String state) {
         for (var pair : customStates) {
             if (pair.getLeft().equals(packageName)) {
@@ -139,7 +134,6 @@ public class DiscordPresence extends Module {
         customStates.add(new Pair<>(packageName, state));
     }
 
-    /** The package name must match exactly to the one provided through {@link #registerCustomState(String, String)}. */
     public static void unregisterCustomState(String packageName) {
         customStates.removeIf(pair -> pair.getLeft().equals(packageName));
     }

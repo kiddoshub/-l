@@ -1,7 +1,3 @@
-/*
- * This file is part of the Meteor Client distribution (https://github.com/MeteorDevelopment/meteor-client).
- * Copyright (c) Meteor Development.
- */
 
 package meteordevelopment.meteorclient.systems.modules.movement.elytrafly.modes;
 
@@ -30,12 +26,6 @@ public class Pitch40 extends ElytraFlightMode {
         pitch = 32.0F;
     }
 
-    /**
-     * Create a random pitch around `pitch` that is within +/- bound/2
-     * @param pitch the input pitch
-     * @param bound the amount of variance
-     * @return the changed pitch
-     */
     private float randPitch(float pitch, float bound) {
         return (float) (pitch + (bound * (Math.random() - 0.5)));
     }
@@ -44,10 +34,8 @@ public class Pitch40 extends ElytraFlightMode {
     public void onTick() {
         super.onTick();
 
-        /*
         When descending, look at 32-33 deg
         When ascending, look up at -49 at 10*pitch speed, then lower at 0.5 deg/tick until at 32-33
-         */
 
         if (pitchingDown && mc.player.getY() <= elytraFly.pitch40lowerBounds.get()) {
             pitchingDown = false;

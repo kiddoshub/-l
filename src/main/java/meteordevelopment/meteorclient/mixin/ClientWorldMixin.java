@@ -1,7 +1,3 @@
-/*
- * This file is part of the Meteor Client distribution (https://github.com/MeteorDevelopment/meteor-client).
- * Copyright (c) Meteor Development.
- */
 
 package meteordevelopment.meteorclient.mixin;
 
@@ -47,9 +43,6 @@ public abstract class ClientWorldMixin {
         if (getEntityById(entityId) != null) MeteorClient.EVENT_BUS.post(EntityRemovedEvent.get(getEntityById(entityId)));
     }
 
-    /**
-     * @author Walaryne
-     */
     @Inject(method = "getDimensionEffects", at = @At("HEAD"), cancellable = true)
     private void onGetSkyProperties(CallbackInfoReturnable<DimensionEffects> info) {
         Ambience ambience = Modules.get().get(Ambience.class);
@@ -59,9 +52,6 @@ public abstract class ClientWorldMixin {
         }
     }
 
-    /**
-     * @author Walaryne
-     */
     @Inject(method = "getSkyColor", at = @At("HEAD"), cancellable = true)
     private void onGetSkyColor(Vec3d cameraPos, float tickDelta, CallbackInfoReturnable<Integer> cir) {
         Ambience ambience = Modules.get().get(Ambience.class);
@@ -71,9 +61,6 @@ public abstract class ClientWorldMixin {
         }
     }
 
-    /**
-     * @author Walaryne
-     */
     @Inject(method = "getCloudsColor", at = @At("HEAD"), cancellable = true)
     private void onGetCloudsColor(float tickDelta, CallbackInfoReturnable<Integer> info) {
         Ambience ambience = Modules.get().get(Ambience.class);

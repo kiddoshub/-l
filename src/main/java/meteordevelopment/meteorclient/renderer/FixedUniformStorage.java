@@ -1,7 +1,3 @@
-/*
- * This file is part of the Meteor Client distribution (https://github.com/MeteorDevelopment/meteor-client).
- * Copyright (c) Meteor Development.
- */
 
 package meteordevelopment.meteorclient.renderer;
 
@@ -15,12 +11,6 @@ import net.minecraft.util.math.MathHelper;
 
 import java.nio.ByteBuffer;
 
-/**
- * UBO storage with a constant size. Exceeding this size causes an {@link IndexOutOfBoundsException} to be thrown.
- *
- * @see DynamicUniformStorage
- * @author Crosby
- */
 public class FixedUniformStorage<T extends DynamicUniformStorage.Uploadable> {
     private final MappableRingBuffer buffer;
     private final int blockSize;

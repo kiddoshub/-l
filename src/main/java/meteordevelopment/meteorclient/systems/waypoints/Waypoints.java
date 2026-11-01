@@ -1,7 +1,3 @@
-/*
- * This file is part of the Meteor Client distribution (https://github.com/MeteorDevelopment/meteor-client).
- * Copyright (c) Meteor Development.
- */
 
 package meteordevelopment.meteorclient.systems.waypoints;
 
@@ -82,10 +78,6 @@ public class Waypoints extends System<Waypoints> implements Iterable<Waypoint> {
         }
     }
 
-    /**
-     * Adds a waypoint or saves it if it already exists
-     * @return {@code true} if waypoint already exists
-     */
     public boolean add(Waypoint waypoint) {
         if (waypoints.contains(waypoint)) {
             save();

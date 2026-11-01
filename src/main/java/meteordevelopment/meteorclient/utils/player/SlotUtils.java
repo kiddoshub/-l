@@ -1,7 +1,3 @@
-/*
- * This file is part of the Meteor Client distribution (https://github.com/MeteorDevelopment/meteor-client).
- * Copyright (c) Meteor Development.
- */
 
 package meteordevelopment.meteorclient.utils.player;
 
@@ -22,14 +18,6 @@ import net.minecraft.screen.slot.SlotActionType;
 import static meteordevelopment.meteorclient.MeteorClient.mc;
 
 public class SlotUtils {
-    /**
-     * These constants refer to the slot index of relevant player slots. They are used when dealing directly with the
-     * player inventory - e.g. {@code mc.player.getInventory().getSelectedSlot()} returns the slot index of your
-     * selected slot (i.e. main hand).
-     *
-     * @see net.minecraft.entity.player.PlayerInventory
-     * @see Slot#index
-     */
     public static final int HOTBAR_START = 0;
     public static final int HOTBAR_END = 8;
     public static final int MAIN_START = 9;
@@ -41,16 +29,6 @@ public class SlotUtils {
     private SlotUtils() {
     }
 
-    /**
-     * Slot ids are used when inventory interactions have to be communicated to the server - you'll only find references
-     * to slot ids when dealing with screen handlers or slot/inventory packets. All the methods in this class are used
-     * to translate slot indices to the ids for each handled screen.
-     *
-     * @see <a href="https://minecraft.wiki/w/Java_Edition_protocol/Inventory">the minecraft.wiki page</a> for every slot id
-     * @see ClientPlayerInteractionManager#clickSlot(int, int, int, SlotActionType, PlayerEntity)
-     * @see ScreenHandler#internalOnSlotClick(int, int, SlotActionType, PlayerEntity)
-     * @see Slot#id
-     */
     public static int indexToId(int i) {
         if (mc.player == null) return -1;
         ScreenHandler handler = mc.player.currentScreenHandler;

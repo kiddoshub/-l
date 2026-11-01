@@ -1,7 +1,3 @@
-/*
- * This file is part of the Meteor Client distribution (https://github.com/MeteorDevelopment/meteor-client).
- * Copyright (c) Meteor Development.
- */
 
 package meteordevelopment.meteorclient.renderer;
 
@@ -13,10 +9,6 @@ public class FullScreenRenderer {
     public static GpuBuffer vbo;
     public static GpuBuffer ibo;
 
-    /**
-     * Deprecated for performance reasons, use {@link MeshRenderer#fullscreen()} or the {@link FullScreenRenderer#vbo}
-     * and {@link FullScreenRenderer#ibo} buffer objects instead.
-     */
     @Deprecated(forRemoval = true)
     public static MeshBuilder mesh;
 

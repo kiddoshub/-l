@@ -1,7 +1,3 @@
-/*
- * This file is part of the Meteor Client distribution (https://github.com/MeteorDevelopment/meteor-client).
- * Copyright (c) Meteor Development.
- */
 
 package meteordevelopment.meteorclient.utils.tooltip;
 
@@ -25,7 +21,6 @@ public class BannerTooltipComponent implements MeteorTooltipData, TooltipCompone
     private final BannerPatternsComponent patterns;
     private final BannerFlagBlockModel bannerFlag;
 
-    /** Should only be used when the ItemStack is a banner */
     public BannerTooltipComponent(ItemStack banner) {
         this.color = ((BannerItem) banner.getItem()).getColor();
         this.patterns = banner.getOrDefault(DataComponentTypes.BANNER_PATTERNS, BannerPatternsComponent.DEFAULT);

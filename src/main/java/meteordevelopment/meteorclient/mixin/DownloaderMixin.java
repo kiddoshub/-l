@@ -1,7 +1,3 @@
-/*
- * This file is part of the Meteor Client distribution (https://github.com/MeteorDevelopment/meteor-client).
- * Copyright (c) Meteor Development.
- */
 
 package meteordevelopment.meteorclient.mixin;
 
@@ -19,14 +15,6 @@ import java.util.UUID;
 
 import static meteordevelopment.meteorclient.MeteorClient.mc;
 
-/**
- * Taken from <a href="https://github.com/CCBlueX/LiquidBounce">LiquidBounce</a>
- * <p>
- * Copyright (c) 2021 - 2025 CCBlueX
- *
- * @author Izuna
- * @see <a href="https://github.com/CCBlueX/LiquidBounce/blob/nextgen/src/main/java/net/ccbluex/liquidbounce/injection/mixins/minecraft/util/MixinDownloader.java">MixinDownloader.java</a>
- */
 @Mixin(Downloader.class)
 public class DownloaderMixin {
     @Shadow

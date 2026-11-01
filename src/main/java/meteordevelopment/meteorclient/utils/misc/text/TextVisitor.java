@@ -1,7 +1,3 @@
-/*
- * This file is part of the Meteor Client distribution (https://github.com/MeteorDevelopment/meteor-client).
- * Copyright (c) Meteor Development.
- */
 
 package meteordevelopment.meteorclient.utils.misc.text;
 
@@ -14,11 +10,6 @@ import java.util.ArrayDeque;
 import java.util.Optional;
 import java.util.Queue;
 
-/**
- * An extension of {@link StringVisitable.StyledVisitor} with access to the underlying {@link Text} objects.
- * @param <T> the optional short circuit return type, to match the semantics of {@link StringVisitable.Visitor} and {@link StringVisitable.StyledVisitor}.
- * @author Crosby
- */
 @FunctionalInterface
 public interface TextVisitor<T> {
     Optional<T> accept(Text text, Style style, String string);
@@ -28,14 +19,6 @@ public interface TextVisitor<T> {
         return text.visit((style, string) -> visitor.accept(queue.remove(), style, string), baseStyle);
     }
 
-    /**
-     * Collapses the tree of {@link Text} siblings into a one dimensional FIFO {@link Queue}. To match the behaviours of
-     * the {@link Text#visit(StringVisitable.Visitor)} and {@link Text#visit(StringVisitable.StyledVisitor, Style)}
-     * methods, texts with empty contents (created from {@link Text#empty()}) are ignored but their siblings are still
-     * processed.
-     * @param text the text
-     * @return the text and its siblings in the order they appear when rendered.
-     */
     static ArrayDeque<Text> collectSiblings(Text text) {
         ArrayDeque<Text> queue = new ArrayDeque<>();
         collectSiblings(text, queue);
