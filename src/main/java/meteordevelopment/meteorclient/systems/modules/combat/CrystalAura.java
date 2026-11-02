@@ -58,6 +58,7 @@ import org.joml.Vector3d;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
@@ -556,6 +557,7 @@ public class CrystalAura extends Module {
 
     private int breakTimer, placeTimer, switchTimer, ticksPassed;
     private final List<LivingEntity> targets = new ArrayList<>();
+    private final Random random = new Random();
 
     private final Vec3d vec3d = new Vec3d(0, 0, 0);
     private final Vec3d playerEyePos = new Vec3d(0, 0, 0);
@@ -830,8 +832,10 @@ public class CrystalAura extends Module {
         boolean attacked = true;
 
         if (rotate.get()) {
-            double yaw = Rotations.getYaw(crystal);
-            double pitch = Rotations.getPitch(crystal, Target.Feet);
+            double yaw = Rotations.getYaw(crystal) + (random.nextDouble() - 0.5) * 0.4;
+            double pitch = Rotations.getPitch(crystal, Target.Feet) + (random.nextDouble() - 0.5) * 0.3;
+            yaw = MathHelper.wrapDegrees((float) yaw);
+            pitch = MathHelper.clamp((float) pitch, -89f, 89f);
 
             if (doYawSteps(yaw, pitch)) {
                 setRotation(true, crystal.getEntityPos(), 0, 0);

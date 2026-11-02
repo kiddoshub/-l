@@ -44,6 +44,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Predicate;
+import java.util.Random;
 
 public class KillAura extends Module {
     private final SettingGroup sgGeneral = settings.getDefaultGroup();
@@ -63,6 +64,25 @@ public class KillAura extends Module {
         .name("rotate")
         .description("Determines when you should rotate towards the target.")
         .defaultValue(RotationMode.Always)
+        .build()
+    );
+
+    private final Setting<Boolean> rotateHuman = sgGeneral.add(new BoolSetting.Builder()
+        .name("humanize-rotations")
+        .description("Humanize rotations with randomized jitter and smoothing.")
+        .defaultValue(true)
+        .visible(() -> rotation.get() != RotationMode.None)
+        .build()
+    );
+
+    private final Setting<Double> rotationRandomness = sgGeneral.add(new DoubleSetting.Builder()
+        .name("rotation-randomness")
+        .description("Amount of randomness applied to rotations.")
+        .defaultValue(0.5)
+        .min(0)
+        .sliderMax(2)
+        .decimalPlaces(2)
+        .visible(() -> rotateHuman.get() && rotation.get() != RotationMode.None)
         .build()
     );
 
@@ -240,6 +260,8 @@ public class KillAura extends Module {
     );
 
     private final List<Entity> targets = new ArrayList<>();
+
+    private final Random random = new Random();
     private int switchTimer, hitTimer;
     private boolean wasPathing = false;
     public boolean attacking, swapped;
@@ -261,8 +283,30 @@ public class KillAura extends Module {
         stopAttacking();
     }
 
-    @EventHandler
-    private void onTick(TickEvent.Pre event) {
+    private double getRotYaw(Entity entity) {
+        double yaw = Rotations.getYaw(entity);
+        if (rotateHuman.get() && rotation.get() != RotationMode.None) {
+            yaw += (random.nextDouble() - 0.5) * 0.6 * rotationRandomness.get();
+            yaw += (Math.random() - 0.5) * 0.2 * rotationRandomness.get();
+            // Add slight smoothing to avoid instant snaps
+            if (mc.player != null) {
+                double diff = MathHelper.wrapDegrees((float) (yaw - mc.player.getYaw()));
+                if (Math.abs(diff) > 50) diff *= 0.7;
+                yaw = mc.player.getYaw() + diff;
+            }
+        }
+        return MathHelper.wrapDegrees((float) yaw);
+    }
+
+    private double getRotPitch(Entity entity) {
+        double pitch = Rotations.getPitch(entity, Target.Body);
+        if (rotateHuman.get() && rotation.get() != RotationMode.None) {
+            pitch += (random.nextDouble() - 0.5) * 0.8 * rotationRandomness.get();
+            pitch += (Math.random() - 0.5) * 0.1 * rotationRandomness.get();
+            pitch = MathHelper.clamp((float) pitch, -89f, 89f);
+        }
+        return pitch;
+    }
         if (!mc.player.isAlive() || PlayerUtils.getGameMode() == GameMode.SPECTATOR) {
             stopAttacking();
             return;
@@ -334,7 +378,7 @@ public class KillAura extends Module {
         }
 
         if (rotation.get() == RotationMode.Always) {
-            Rotations.rotate(Rotations.getYaw(primary), Rotations.getPitch(primary, Target.Body));
+            Rotations.rotate(getRotYaw(primary), getRotPitch(primary));
         }
         if (pauseOnCombat.get() && PathManagers.get().isPathing() && !wasPathing) {
             PathManagers.get().pause();
@@ -343,10 +387,10 @@ public class KillAura extends Module {
 
         if (delayCheck()) {
             if (rotation.get() == RotationMode.OnHit || rotation.get() == RotationMode.None) {
-                // Ensure rotation for hit
-                if (rotation.get() == RotationMode.OnHit) {
-                    Rotations.rotate(Rotations.getYaw(primary), Rotations.getPitch(primary, Target.Body), () -> targets.forEach(this::attackDirect));
-                } else {
+            // Ensure rotation for hit
+            if (rotation.get() == RotationMode.OnHit) {
+                Rotations.rotate(getRotYaw(primary), getRotPitch(primary), () -> targets.forEach(this::attackDirect));
+            } else {
                     targets.forEach(this::attackDirect);
                 }
             } else {
@@ -454,7 +498,7 @@ public class KillAura extends Module {
     }
 
     private void attackDirect(Entity target) {
-        if (rotation.get() == RotationMode.OnHit) Rotations.rotate(Rotations.getYaw(target), Rotations.getPitch(target, Target.Body));
+        if (rotation.get() == RotationMode.OnHit) Rotations.rotate(getRotYaw(target), getRotPitch(target));
         mc.interactionManager.attackEntity(mc.player, target);
         mc.player.swingHand(Hand.MAIN_HAND);
         hitTimer = 0;

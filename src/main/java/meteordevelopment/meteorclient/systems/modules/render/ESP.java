@@ -92,6 +92,20 @@ public class ESP extends Module {
         .build()
     );
 
+    public final Setting<Boolean> ignoreFriends = sgGeneral.add(new BoolSetting.Builder()
+        .name("ignore-friends")
+        .description("Exclude friends from ESP.")
+        .defaultValue(false)
+        .build()
+    );
+
+    public final Setting<Boolean> ignoreInvisible = sgGeneral.add(new BoolSetting.Builder()
+        .name("ignore-invisible")
+        .description("Exclude invisible entities from ESP.")
+        .defaultValue(false)
+        .build()
+    );
+
     public final Setting<ShapeMode> shapeMode = sgGeneral.add(new EnumSetting.Builder<ShapeMode>()
         .name("shape-mode")
         .description("How the shapes are rendered.")
@@ -110,12 +124,21 @@ public class ESP extends Module {
         .build()
     );
 
+    private final Setting<Double> maxDistance = sgGeneral.add(new DoubleSetting.Builder()
+        .name("max-distance")
+        .description("Maximum distance an entity can be from the camera to render.")
+        .defaultValue(256)
+        .min(0)
+        .sliderMax(512)
+        .build()
+    );
+
     private final Setting<Double> fadeDistance = sgGeneral.add(new DoubleSetting.Builder()
         .name("fade-distance")
         .description("The distance from an entity where the color begins to fade.")
         .defaultValue(3)
         .min(0)
-        .sliderMax(12)
+        .sliderMax(32)
         .build()
     );
 
@@ -462,6 +485,12 @@ public class ESP extends Module {
         if (!entities.get().contains(entity.getType())) return true;
         if (entity == mc.player && ignoreSelf.get()) return true;
         if (entity == mc.getCameraEntity() && mc.options.getPerspective().isFirstPerson()) return true;
+        if (ignoreInvisible.get() && entity.isInvisible()) return true;
+        if (ignoreFriends.get() && entity instanceof PlayerEntity && Friends.get().isFriend((PlayerEntity) entity)) return true;
+        if (maxDistance.get() > 0) {
+            double dist = PlayerUtils.squaredDistanceToCamera(entity.getX(), entity.getY() + entity.getHeight() / 2.0, entity.getZ());
+            if (dist > maxDistance.get() * maxDistance.get()) return true;
+        }
         return !EntityUtils.isInRenderDistance(entity);
     }
 
@@ -477,6 +506,13 @@ public class ESP extends Module {
             color = targetColor.get();
         } else {
             if (!entities.get().contains(entity.getType())) return null;
+            if (ignoreInvisible.get() && entity.isInvisible()) return null;
+            if (ignoreFriends.get() && entity instanceof PlayerEntity && Friends.get().isFriend((PlayerEntity) entity)) return null;
+
+            if (maxDistance.get() > 0) {
+                double dist = PlayerUtils.squaredDistanceToCamera(entity.getX(), entity.getY(), entity.getZ());
+                if (dist > maxDistance.get() * maxDistance.get()) return null;
+            }
 
             alpha = getFadeAlpha(entity);
             if (alpha == 0) return null;
@@ -491,17 +527,22 @@ public class ESP extends Module {
         }
 
         if (color == null) return null;
-        return out.set(color.r, color.g, color.b, (int) (color.a * alpha));
+        return out.set(color.r, color.g, color.b, (int) (Math.min(color.a * alpha, 255)));
     }
 
     private double getFadeAlpha(Entity entity) {
         double dist = PlayerUtils.squaredDistanceToCamera(entity.getX() + entity.getWidth() / 2, entity.getY() + entity.getEyeHeight(entity.getPose()), entity.getZ() + entity.getWidth() / 2);
         double fadeDist = fadeDistance.get();
+        if (fadeDist <= 0) return 1;
         double fadeDistSq = fadeDist * fadeDist;
         double alpha = 1;
         if (dist <= fadeDistSq) alpha = Math.sqrt(dist) / fadeDist;
+        else if (maxDistance.get() > 0 && dist < maxDistance.get() * maxDistance.get()) {
+            double maxDistSq = maxDistance.get() * maxDistance.get();
+            alpha = (maxDistSq - dist) / (maxDistSq - fadeDistSq);
+        }
         if (alpha <= 0.075) alpha = 0;
-        return alpha;
+        return Math.min(1.0, alpha);
     }
 
     public Color getEntityTypeColor(Entity entity) {
