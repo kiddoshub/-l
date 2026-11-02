@@ -18,7 +18,6 @@ import meteordevelopment.meteorclient.systems.Systems;
 import meteordevelopment.meteorclient.systems.config.Config;
 import meteordevelopment.meteorclient.systems.modules.combat.*;
 import meteordevelopment.meteorclient.systems.modules.misc.*;
-import meteordevelopment.meteorclient.systems.modules.misc.swarm.Swarm;
 import meteordevelopment.meteorclient.systems.modules.movement.*;
 import meteordevelopment.meteorclient.systems.modules.movement.elytrafly.ElytraFly;
 import meteordevelopment.meteorclient.systems.modules.movement.speed.Speed;
@@ -550,7 +549,6 @@ public class Modules extends System<Modules> {
         add(new BetterBeacons());
         add(new BetterChat());
         add(new BookBot());
-        add(new DiscordPresence());
         add(new InventoryTweaks());
         add(new MessageAura());
         add(new Notebot());
@@ -559,6 +557,5 @@ public class Modules extends System<Modules> {
         add(new ServerSpoof());
         add(new SoundBlocker());
         add(new Spam());
-        add(new Swarm());
     }
 }
