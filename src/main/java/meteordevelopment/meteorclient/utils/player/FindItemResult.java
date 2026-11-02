@@ -1,7 +1,3 @@
-/*
- * This file is part of the Meteor Client distribution (https://github.com/MeteorDevelopment/meteor-client).
- * Copyright (c) Meteor Development.
- */
 
 package meteordevelopment.meteorclient.utils.player;
 
@@ -9,10 +5,6 @@ import net.minecraft.util.Hand;
 
 import static meteordevelopment.meteorclient.MeteorClient.mc;
 
-/**
- * @param slot  The slot index
- * @param count The number of items in the slot
- */
 public record FindItemResult(int slot, int count) {
     public boolean found() {
         return slot != -1;

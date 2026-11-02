@@ -1,7 +1,3 @@
-/*
- * This file is part of the Meteor Client distribution (https://github.com/MeteorDevelopment/meteor-client).
- * Copyright (c) Meteor Development.
- */
 
 package meteordevelopment.meteorclient.systems.modules.player;
 
@@ -76,10 +72,6 @@ public class AutoReplenish extends Module {
         .build()
     );
 
-    /**
-     * Represents the items the player had last tick. Indices 0-8 represent the
-     * hotbar from left to right, index 9 represents the player's offhand
-     */
     private final ItemStack[] items = new ItemStack[10];
     private boolean prevHadOpenScreen;
     private int tickDelayLeft;

@@ -1,7 +1,3 @@
-/*
- * This file is part of the Meteor Client distribution (https://github.com/MeteorDevelopment/meteor-client).
- * Copyright (c) Meteor Development.
- */
 
 package meteordevelopment.meteorclient.utils.entity;
 
@@ -57,11 +53,6 @@ public class DamageUtils {
 
     // Explosion damage
 
-    /**
-     * It is recommended to use this {@link RaycastFactory} unless you implement custom behaviour, as soon:tm: it will be the
-     * target of optimizations to make it more performant.
-     * @see BlockView#raycast(RaycastContext)
-     */
     public static final RaycastFactory HIT_FACTORY = (context, blockPos) -> {
         BlockState blockState = mc.world.getBlockState(blockPos);
         if (blockState.getBlock().getBlastResistance() < 600) return null;
@@ -81,11 +72,6 @@ public class DamageUtils {
         return explosionDamage(target, targetPos, targetBox, explosionPos, 10f, raycastFactory);
     }
 
-    /**
-     * Low level control of parameters without having to reimplement everything, for addon authors who wish to use their
-     * own predictions or other systems.
-     * @see net.minecraft.world.explosion.ExplosionBehavior#calculateDamage(Explosion, Entity, float)
-     */
     public static float explosionDamage(LivingEntity target, Vec3d targetPos, Box targetBox, Vec3d explosionPos, float power, RaycastFactory raycastFactory) {
         double modDistance = PlayerUtils.distance(targetPos.x, targetPos.y, targetPos.z, explosionPos.x, explosionPos.y, explosionPos.z);
         if (modDistance > power) return 0f;
@@ -97,7 +83,6 @@ public class DamageUtils {
         return calculateReductions(damage, target, mc.world.getDamageSources().explosion(null));
     }
 
-    /** Meteor Client implementations */
 
     public static float crystalDamage(LivingEntity target, Vec3d crystal, boolean predictMovement, BlockPos obsidianPos) {
         return overridingExplosionDamage(target, crystal, 12f, predictMovement, obsidianPos, Blocks.OBSIDIAN.getDefaultState());
@@ -150,9 +135,6 @@ public class DamageUtils {
 
     // Sword damage
 
-    /**
-     * @see PlayerEntity#attack(Entity)
-     */
     public static float getAttackDamage(LivingEntity attacker, Entity target) {
         float itemDamage = (float) attacker.getAttributeValue(EntityAttributes.ATTACK_DAMAGE);
         DamageSource damageSource = attacker instanceof PlayerEntity player ? mc.world.getDamageSources().playerAttack(player) : mc.world.getDamageSources().mobAttack(attacker);
@@ -237,9 +219,6 @@ public class DamageUtils {
 
     // Fall Damage
 
-    /**
-     * @see LivingEntity#computeFallDamage(double, float)
-     */
     public static float fallDamage(LivingEntity entity) {
         if (entity instanceof PlayerEntity player && player.getAbilities().flying) return 0f;
         if (entity.hasStatusEffect(StatusEffects.SLOW_FALLING) || entity.hasStatusEffect(StatusEffects.LEVITATION)) return 0f;
@@ -265,9 +244,6 @@ public class DamageUtils {
 
     // Utils
 
-    /**
-     * @see LivingEntity#applyDamage(ServerWorld, DamageSource, float)
-     */
     public static float calculateReductions(float damage, Entity entity, DamageSource damageSource) {
         if (damageSource.isScaledWithDifficulty()) {
             switch (mc.world.getDifficulty()) {
@@ -293,9 +269,6 @@ public class DamageUtils {
         return (float) Math.floor(entity.getAttributeValue(EntityAttributes.ARMOR));
     }
 
-    /**
-     * @see LivingEntity#modifyAppliedDamage(DamageSource, float)
-     */
     private static float protectionReduction(LivingEntity player, float damage, DamageSource source) {
         if (source.isIn(DamageTypeTags.BYPASSES_INVULNERABILITY)) return damage;
 
@@ -336,9 +309,6 @@ public class DamageUtils {
         return DamageUtil.getInflictedDamage(damage, damageProtection);
     }
 
-    /**
-     * @see LivingEntity#modifyAppliedDamage(DamageSource, float)
-     */
     private static float resistanceReduction(LivingEntity player, float damage) {
         StatusEffectInstance resistance = player.getStatusEffect(StatusEffects.RESISTANCE);
         if (resistance != null) {
@@ -349,9 +319,6 @@ public class DamageUtils {
         return Math.max(damage, 0);
     }
 
-    /**
-     * @see net.minecraft.world.explosion.ExplosionImpl#calculateReceivedDamage(Vec3d, Entity)
-     */
     private static float getExposure(Vec3d source, Box box, RaycastFactory raycastFactory) {
         double xDiff = box.maxX - box.minX;
         double yDiff = box.maxY - box.minY;
@@ -397,7 +364,6 @@ public class DamageUtils {
         return 0f;
     }
 
-    /* Raycasts */
 
     private static BlockHitResult raycast(ExposureRaycastContext context, RaycastFactory raycastFactory) {
         return BlockView.raycast(context.start, context.end, context, raycastFactory, ctx -> null);

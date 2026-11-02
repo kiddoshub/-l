@@ -1,7 +1,3 @@
-/*
- * This file is part of the Meteor Client distribution (https://github.com/MeteorDevelopment/meteor-client).
- * Copyright (c) Meteor Development.
- */
 
 package meteordevelopment.meteorclient.systems.modules.render;
 
@@ -92,9 +88,9 @@ public class Freecam extends Module {
         .build()
     );
 
-    private final Setting<Boolean> toggleOnLog = sgGeneral.add(new BoolSetting.Builder()
-        .name("toggle-on-log")
-        .description("Disables freecam when you disconnect from a server.")
+    private final Setting<Boolean> stopOnScreen = sgGeneral.add(new BoolSetting.Builder()
+        .name("stop-on-screen")
+        .description("Stops camera movement when a screen is open.")
         .defaultValue(true)
         .build()
     );
@@ -235,6 +231,11 @@ public class Freecam extends Module {
 
     @EventHandler
     private void onTick(TickEvent.Post event) {
+        if (stopOnScreen.get() && mc.currentScreen != null) {
+            prevPos.set(pos);
+            return;
+        }
+
         if (mc.getCameraEntity().isInsideWall()) mc.getCameraEntity().noClip = true;
         if (!perspective.isFirstPerson()) mc.options.setPerspective(Perspective.FIRST_PERSON);
 
@@ -261,8 +262,8 @@ public class Freecam extends Module {
             }
         }
 
-        double s = 0.5;
-        if (Input.isPressed(mc.options.sprintKey)) s = 1;
+        double s = speedValue;
+        if (Input.isPressed(mc.options.sprintKey)) s = speedValue * 2.0;
 
         boolean a = false;
         if (this.forward) {
@@ -417,7 +418,8 @@ public class Freecam extends Module {
     private void onMouseScroll(MouseScrollEvent event) {
         if (speedScrollSensitivity.get() > 0 && mc.currentScreen == null) {
             speedValue += event.value * 0.25 * (speedScrollSensitivity.get() * speedValue);
-            if (speedValue < 0.1) speedValue = 0.1;
+        if (speedValue < 0.0) speedValue = 0.0;
+        if (speedValue < 0.1) speedValue = 0.1;
 
             event.cancel();
         }

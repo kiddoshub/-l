@@ -1,7 +1,3 @@
-/*
- * This file is part of the Meteor Client distribution (https://github.com/MeteorDevelopment/meteor-client).
- * Copyright (c) Meteor Development.
- */
 
 package meteordevelopment.meteorclient.utils.player;
 
@@ -18,10 +14,6 @@ import java.util.function.Predicate;
 
 import static meteordevelopment.meteorclient.MeteorClient.mc;
 
-/**
- * Util class for dealing inventories and the items in them.
- * See {@link SlotUtils} for details on how slots are referenced.
- */
 public class InvUtils {
     private static final Action ACTION = new Action();
     public static int previousSlot = -1;
@@ -187,10 +179,6 @@ public class InvUtils {
         return ACTION;
     }
 
-    /**
-     * When writing code with quickSwap, both to and from should provide the ID of a slot, not the index.
-     * From should be the slot in the hotbar, to should be the slot you're switching an item from.
-     */
     public static Action quickSwap() {
         ACTION.type = SlotActionType.SWAP;
         return ACTION;
@@ -236,9 +224,6 @@ public class InvUtils {
             return this;
         }
 
-        /**
-         * @param index The index of one of the slots within the inventory
-         */
         public Action from(int index) {
             return fromId(SlotUtils.indexToId(index));
         }
@@ -255,9 +240,6 @@ public class InvUtils {
             return from(SlotUtils.MAIN_START + i);
         }
 
-        /**
-         * @param i The entity slot id of one of the four humanoid armor pieces, as defined in {@link EquipmentSlot}
-         */
         public Action fromArmor(int i) {
             return from(SlotUtils.ARMOR_START + (3 - i));
         }
@@ -269,9 +251,6 @@ public class InvUtils {
             run();
         }
 
-        /**
-         * @param index The index of one of the slots within the inventory
-         */
         public void to(int index) {
             toId(SlotUtils.indexToId(index));
         }
@@ -288,9 +267,6 @@ public class InvUtils {
             to(SlotUtils.MAIN_START + i);
         }
 
-        /**
-         * @param i The entity slot id of one of the four humanoid armor pieces, as defined in {@link EquipmentSlot}
-         */
         public void toArmor(int i) {
             to(SlotUtils.ARMOR_START + (3 - i));
         }
@@ -302,9 +278,6 @@ public class InvUtils {
             run();
         }
 
-        /**
-         * @param index The index of one of the slots within the inventory
-         */
         public void slot(int index) {
             slotId(SlotUtils.indexToId(index));
         }
@@ -321,9 +294,6 @@ public class InvUtils {
             slot(SlotUtils.MAIN_START + i);
         }
 
-        /**
-         * @param i The entity slot id of one of the four humanoid armor pieces, as defined in {@link EquipmentSlot}
-         */
         public void slotArmor(int i) {
             slot(SlotUtils.ARMOR_START + (3 - i));
         }

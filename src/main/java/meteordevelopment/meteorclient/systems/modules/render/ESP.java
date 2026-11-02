@@ -1,12 +1,8 @@
-/*
- * This file is part of the Meteor Client distribution (https://github.com/MeteorDevelopment/meteor-client).
- * Copyright (c) Meteor Development.
- */
-
 package meteordevelopment.meteorclient.systems.modules.render;
 
 import meteordevelopment.meteorclient.events.render.Render2DEvent;
 import meteordevelopment.meteorclient.events.render.Render3DEvent;
+import meteordevelopment.meteorclient.events.world.TickEvent;
 import meteordevelopment.meteorclient.renderer.Renderer2D;
 import meteordevelopment.meteorclient.renderer.ShapeMode;
 import meteordevelopment.meteorclient.settings.*;
@@ -23,13 +19,22 @@ import meteordevelopment.meteorclient.utils.render.color.SettingColor;
 import meteordevelopment.orbit.EventHandler;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
+import net.minecraft.entity.ItemEntity;
+import net.minecraft.entity.decoration.EndCrystalEntity;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.projectile.ProjectileEntity;
 import net.minecraft.util.hit.EntityHitResult;
 import net.minecraft.util.math.Box;
 import net.minecraft.util.math.MathHelper;
 import org.joml.Vector3d;
 
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class ESP extends Module {
     private final SettingGroup sgGeneral = settings.getDefaultGroup();
@@ -87,6 +92,20 @@ public class ESP extends Module {
         .build()
     );
 
+    public final Setting<Boolean> ignoreFriends = sgGeneral.add(new BoolSetting.Builder()
+        .name("ignore-friends")
+        .description("Exclude friends from ESP.")
+        .defaultValue(false)
+        .build()
+    );
+
+    public final Setting<Boolean> ignoreInvisible = sgGeneral.add(new BoolSetting.Builder()
+        .name("ignore-invisible")
+        .description("Exclude invisible entities from ESP.")
+        .defaultValue(false)
+        .build()
+    );
+
     public final Setting<ShapeMode> shapeMode = sgGeneral.add(new EnumSetting.Builder<ShapeMode>()
         .name("shape-mode")
         .description("How the shapes are rendered.")
@@ -105,12 +124,21 @@ public class ESP extends Module {
         .build()
     );
 
+    private final Setting<Double> maxDistance = sgGeneral.add(new DoubleSetting.Builder()
+        .name("max-distance")
+        .description("Maximum distance an entity can be from the camera to render.")
+        .defaultValue(256)
+        .min(0)
+        .sliderMax(512)
+        .build()
+    );
+
     private final Setting<Double> fadeDistance = sgGeneral.add(new DoubleSetting.Builder()
         .name("fade-distance")
         .description("The distance from an entity where the color begins to fade.")
         .defaultValue(3)
         .min(0)
-        .sliderMax(12)
+        .sliderMax(32)
         .build()
     );
 
@@ -118,6 +146,30 @@ public class ESP extends Module {
         .name("entities")
         .description("Select specific entities.")
         .defaultValue(EntityType.PLAYER)
+        .build()
+    );
+
+    public final Setting<Boolean> occlusion = sgGeneral.add(new BoolSetting.Builder()
+        .name("occlusion")
+        .description("Only render entities that are visible through walls based on raycasting.")
+        .defaultValue(false)
+        .build()
+    );
+
+    public final Setting<Boolean> strictOcclusion = sgGeneral.add(new BoolSetting.Builder()
+        .name("strict-occlusion")
+        .description("Treat any non-full-cube shape and non-solid collision shape as occluder.")
+        .defaultValue(false)
+        .visible(occlusion::get)
+        .build()
+    );
+
+    public final Setting<Integer> validationDelayMs = sgGeneral.add(new IntSetting.Builder()
+        .name("validation-delay-ms")
+        .description("Delay before entities are rendered after first seen.")
+        .defaultValue(300)
+        .range(0, 2000)
+        .sliderRange(0, 2000)
         .build()
     );
 
@@ -186,6 +238,22 @@ public class ESP extends Module {
         .build()
     );
 
+    private final Setting<SettingColor> itemsColor = sgColors.add(new ColorSetting.Builder()
+        .name("items-color")
+        .description("The dropped items color.")
+        .defaultValue(new SettingColor(175, 175, 175, 255))
+        .visible(() -> !distance.get())
+        .build()
+    );
+
+    private final Setting<SettingColor> projectilesColor = sgColors.add(new ColorSetting.Builder()
+        .name("projectiles-color")
+        .description("The projectiles color.")
+        .defaultValue(new SettingColor(175, 175, 175, 255))
+        .visible(() -> !distance.get())
+        .build()
+    );
+
     private final Setting<SettingColor> targetColor = sgColors.add(new ColorSetting.Builder()
         .name("target-color")
         .description("The target color.")
@@ -211,9 +279,28 @@ public class ESP extends Module {
     private final Vector3d pos = new Vector3d();
 
     private int count;
+    private final Map<UUID, Long> firstSeen = new ConcurrentHashMap<>();
 
     public ESP() {
         super(Categories.Render, "esp", "Renders entities through walls.");
+    }
+
+    @EventHandler
+    private void onTick(TickEvent.Post event) {
+        if (mc.world == null) {
+            firstSeen.clear();
+            return;
+        }
+    }
+
+    @Override
+    public void onActivate() {
+        firstSeen.clear();
+    }
+
+    @Override
+    public void onDeactivate() {
+        firstSeen.clear();
     }
 
     // Box
@@ -227,19 +314,47 @@ public class ESP extends Module {
         Entity target = null;
         if (highlightTarget.get() && targetHitbox.get() && mc.crosshairTarget instanceof EntityHitResult hr) target = hr.getEntity();
 
-        for (Entity entity : mc.world.getEntities()) {
+        // Snapshot entity list once per frame
+        List<Entity> entitiesSnapshot = new ArrayList<>();
+        if (mc.world != null) {
+            for (Entity entity : mc.world.getEntities()) {
+                entitiesSnapshot.add(entity);
+            }
+        }
+
+        // Sort far-to-near by squared distance to camera
+        Vec3d cameraPos = mc.gameRenderer.getCamera().getPos();
+        entitiesSnapshot.sort(Comparator.comparingDouble((Entity e) -> {
+            double dx = e.getX() - cameraPos.x;
+            double dy = e.getY() - cameraPos.y;
+            double dz = e.getZ() - cameraPos.z;
+            return -(dx * dx + dy * dy + dz * dz);
+        }));
+
+        for (Entity entity : entitiesSnapshot) {
+            if (!isEntityValid(entity)) continue;
             if (target != entity && shouldSkip(entity)) continue;
             if (target == entity || mode.get() == Mode.Box || mode.get() == Mode.Wireframe) drawBoundingBox(event, entity);
             count++;
         }
     }
 
+    private boolean isEntityValid(Entity entity) {
+        long delay = validationDelayMs.get().longValue();
+        if (delay <= 0) return true;
+
+        UUID uuid = entity.getUuid();
+        long now = System.currentTimeMillis();
+        firstSeen.putIfAbsent(uuid, now);
+        long seenAt = firstSeen.getOrDefault(uuid, now);
+        return (now - seenAt) >= delay;
+    }
+
     private void drawBoundingBox(Render3DEvent event, Entity entity) {
         Color color = getColor(entity);
-        if (color != null) {
-            lineColor.set(color);
-            sideColor.set(color).a((int) (sideColor.a * fillOpacity.get()));
-        }
+        if (color == null) return;
+        lineColor.set(color);
+        sideColor.set(color).a((int) (sideColor.a * fillOpacity.get()));
 
         if (mode.get() == Mode.Wireframe) {
             WireframeEntityRenderer.render(event, entity, 1, sideColor, lineColor, shapeMode.get());
@@ -270,7 +385,24 @@ public class ESP extends Module {
         Renderer2D.COLOR.begin();
         count = 0;
 
-        for (Entity entity : mc.world.getEntities()) {
+        // Snapshot entity list once per frame
+        List<Entity> entitiesSnapshot = new ArrayList<>();
+        if (mc.world != null) {
+            for (Entity entity : mc.world.getEntities()) {
+                entitiesSnapshot.add(entity);
+            }
+        }
+
+        Vec3d cameraPos = mc.gameRenderer.getCamera().getPos();
+        entitiesSnapshot.sort(Comparator.comparingDouble((Entity e) -> {
+            double dx = e.getX() - cameraPos.x;
+            double dy = e.getY() - cameraPos.y;
+            double dz = e.getZ() - cameraPos.z;
+            return -(dx * dx + dy * dy + dz * dz);
+        }));
+
+        for (Entity entity : entitiesSnapshot) {
+            if (!isEntityValid(entity)) continue;
             if (shouldSkip(entity)) continue;
 
             Box box = entity.getBoundingBox();
@@ -280,27 +412,28 @@ public class ESP extends Module {
             double z = MathHelper.lerp(event.tickDelta, entity.lastRenderZ, entity.getZ()) - entity.getZ();
 
             // Check corners
-            pos1.set(Double.MAX_VALUE, Double.MAX_VALUE, Double.MAX_VALUE);
-            pos2.set(0, 0, 0);
+            pos1.set(Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY);
+            pos2.set(-Double.POSITIVE_INFINITY, -Double.POSITIVE_INFINITY, -Double.POSITIVE_INFINITY);
 
             //     Bottom
-            if (checkCorner(box.minX + x, box.minY + y, box.minZ + z, pos1, pos2)) continue;
-            if (checkCorner(box.maxX + x, box.minY + y, box.minZ + z, pos1, pos2)) continue;
-            if (checkCorner(box.minX + x, box.minY + y, box.maxZ + z, pos1, pos2)) continue;
-            if (checkCorner(box.maxX + x, box.minY + y, box.maxZ + z, pos1, pos2)) continue;
+            if (checkCorner(box.minX + x, box.minY + y, box.minZ + z)) continue;
+            if (checkCorner(box.maxX + x, box.minY + y, box.minZ + z)) continue;
+            if (checkCorner(box.minX + x, box.minY + y, box.maxZ + z)) continue;
+            if (checkCorner(box.maxX + x, box.minY + y, box.maxZ + z)) continue;
 
             //     Top
-            if (checkCorner(box.minX + x, box.maxY + y, box.minZ + z, pos1, pos2)) continue;
-            if (checkCorner(box.maxX + x, box.maxY + y, box.minZ + z, pos1, pos2)) continue;
-            if (checkCorner(box.minX + x, box.maxY + y, box.maxZ + z, pos1, pos2)) continue;
-            if (checkCorner(box.maxX + x, box.maxY + y, box.maxZ + z, pos1, pos2)) continue;
+            if (checkCorner(box.minX + x, box.maxY + y, box.minZ + z)) continue;
+            if (checkCorner(box.maxX + x, box.maxY + y, box.minZ + z)) continue;
+            if (checkCorner(box.minX + x, box.maxY + y, box.maxZ + z)) continue;
+            if (checkCorner(box.maxX + x, box.maxY + y, box.maxZ + z)) continue;
+
+            if (pos1.x > pos2.x) continue;
 
             // Setup color
             Color color = getColor(entity);
-            if (color != null) {
-                lineColor.set(color);
-                sideColor.set(color).a((int) (sideColor.a * fillOpacity.get()));
-            }
+            if (color == null) continue;
+            lineColor.set(color);
+            sideColor.set(color).a((int) (sideColor.a * fillOpacity.get()));
 
             // Render
             if (shapeMode.get() != ShapeMode.Lines && sideColor.a > 0) {
@@ -324,19 +457,19 @@ public class ESP extends Module {
         return isActive() && (mode.get() == Mode.Shader || mode.get() == Mode.Glow);
     }
 
-    private boolean checkCorner(double x, double y, double z, Vector3d min, Vector3d max) {
+    private boolean checkCorner(double x, double y, double z) {
         pos.set(x, y, z);
         if (!NametagUtils.to2D(pos, 1)) return true;
 
         // Check Min
-        if (pos.x < min.x) min.x = pos.x;
-        if (pos.y < min.y) min.y = pos.y;
-        if (pos.z < min.z) min.z = pos.z;
+        if (pos.x < pos1.x) pos1.x = pos.x;
+        if (pos.y < pos1.y) pos1.y = pos.y;
+        if (pos.z < pos1.z) pos1.z = pos.z;
 
         // Check Max
-        if (pos.x > max.x) max.x = pos.x;
-        if (pos.y > max.y) max.y = pos.y;
-        if (pos.z > max.z) max.z = pos.z;
+        if (pos.x > pos2.x) pos2.x = pos.x;
+        if (pos.y > pos2.y) pos2.y = pos.y;
+        if (pos.z > pos2.z) pos2.z = pos.z;
 
         return false;
     }
@@ -352,10 +485,20 @@ public class ESP extends Module {
         if (!entities.get().contains(entity.getType())) return true;
         if (entity == mc.player && ignoreSelf.get()) return true;
         if (entity == mc.getCameraEntity() && mc.options.getPerspective().isFirstPerson()) return true;
+        if (ignoreInvisible.get() && entity.isInvisible()) return true;
+        if (ignoreFriends.get() && entity instanceof PlayerEntity && Friends.get().isFriend((PlayerEntity) entity)) return true;
+        if (maxDistance.get() > 0) {
+            double dist = PlayerUtils.squaredDistanceToCamera(entity.getX(), entity.getY() + entity.getHeight() / 2.0, entity.getZ());
+            if (dist > maxDistance.get() * maxDistance.get()) return true;
+        }
         return !EntityUtils.isInRenderDistance(entity);
     }
 
     public Color getColor(Entity entity) {
+        return getColor(entity, baseColor);
+    }
+
+    public Color getColor(Entity entity, Color out) {
         Color color;
         double alpha = 1;
 
@@ -363,26 +506,52 @@ public class ESP extends Module {
             color = targetColor.get();
         } else {
             if (!entities.get().contains(entity.getType())) return null;
+            if (ignoreInvisible.get() && entity.isInvisible()) return null;
+            if (ignoreFriends.get() && entity instanceof PlayerEntity && Friends.get().isFriend((PlayerEntity) entity)) return null;
+
+            if (maxDistance.get() > 0) {
+                double dist = PlayerUtils.squaredDistanceToCamera(entity.getX(), entity.getY(), entity.getZ());
+                if (dist > maxDistance.get() * maxDistance.get()) return null;
+            }
 
             alpha = getFadeAlpha(entity);
             if (alpha == 0) return null;
 
+            if (occlusion.get()) {
+                float fraction = EntityOcclusion.visibleFraction(entity, strictOcclusion.get());
+                if (fraction <= 0.05f) return null;
+                alpha *= fraction;
+            }
+
             color = getEntityTypeColor(entity);
         }
 
-        return baseColor.set(color.r, color.g, color.b, (int) (color.a * alpha));
+        if (color == null) return null;
+        return out.set(color.r, color.g, color.b, (int) (Math.min(color.a * alpha, 255)));
     }
 
     private double getFadeAlpha(Entity entity) {
         double dist = PlayerUtils.squaredDistanceToCamera(entity.getX() + entity.getWidth() / 2, entity.getY() + entity.getEyeHeight(entity.getPose()), entity.getZ() + entity.getWidth() / 2);
-        double fadeDist = Math.pow(fadeDistance.get(), 2);
+        double fadeDist = fadeDistance.get();
+        if (fadeDist <= 0) return 1;
+        double fadeDistSq = fadeDist * fadeDist;
         double alpha = 1;
-        if (dist <= fadeDist * fadeDist) alpha = (float) (Math.sqrt(dist) / fadeDist);
+        if (dist <= fadeDistSq) alpha = Math.sqrt(dist) / fadeDist;
+        else if (maxDistance.get() > 0 && dist < maxDistance.get() * maxDistance.get()) {
+            double maxDistSq = maxDistance.get() * maxDistance.get();
+            alpha = (maxDistSq - dist) / (maxDistSq - fadeDistSq);
+        }
         if (alpha <= 0.075) alpha = 0;
-        return alpha;
+        return Math.min(1.0, alpha);
     }
 
     public Color getEntityTypeColor(Entity entity) {
+        if (entity instanceof ItemEntity) {
+            return itemsColor.get();
+        } else if (entity instanceof ProjectileEntity || entity instanceof EndCrystalEntity) {
+            return projectilesColor.get();
+        }
+
         if (distance.get()) {
             if (friendOverride.get() && entity instanceof PlayerEntity && Friends.get().isFriend((PlayerEntity) entity)) {
                 return Config.get().friendColor.get();

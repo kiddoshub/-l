@@ -1,7 +1,3 @@
-/*
- * This file is part of the Meteor Client distribution (https://github.com/MeteorDevelopment/meteor-client).
- * Copyright (c) Meteor Development.
- */
 
 package meteordevelopment.meteorclient.utils.player;
 
@@ -21,6 +17,7 @@ import net.minecraft.util.math.Vec3d;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 import static meteordevelopment.meteorclient.MeteorClient.mc;
 
@@ -37,6 +34,7 @@ public class Rotations {
     private static int lastRotationTimer;
     private static boolean sentLastRotation;
     public static boolean rotating = false;
+    private static final Random random = new Random();
 
     private Rotations() {
     }
@@ -47,6 +45,18 @@ public class Rotations {
     }
 
     public static void rotate(double yaw, double pitch, int priority, boolean clientSide, Runnable callback) {
+        // Humanize rotations for stricter ACs
+        yaw = yaw + (random.nextDouble() - 0.5) * 0.8;
+        pitch = pitch + (random.nextDouble() - 0.5) * 0.5;
+        pitch = MathHelper.clamp((float) pitch, -90f, 90f);
+        yaw = MathHelper.wrapDegrees((float) yaw);
+
+        // Snap to nearest reasonable values to avoid impossible rotations
+        double yawDiff = Math.abs(MathHelper.wrapDegrees((float) (yaw - mc.player.getYaw())));
+        double pitchDiff = Math.abs(pitch - mc.player.getPitch());
+        if (yawDiff < 0.1) yaw = mc.player.getYaw();
+        if (pitchDiff < 0.1) pitch = mc.player.getPitch();
+
         Rotation rotation = rotationPool.get();
         rotation.set(yaw, pitch, priority, clientSide, callback);
 
@@ -165,7 +175,9 @@ public class Rotations {
     }
 
     public static double getYaw(Entity entity) {
-        return mc.player.getYaw() + MathHelper.wrapDegrees((float) Math.toDegrees(Math.atan2(entity.getZ() - mc.player.getZ(), entity.getX() - mc.player.getX())) - 90f - mc.player.getYaw());
+        double yaw = mc.player.getYaw() + MathHelper.wrapDegrees((float) Math.toDegrees(Math.atan2(entity.getZ() - mc.player.getZ(), entity.getX() - mc.player.getX())) - 90f - mc.player.getYaw());
+        yaw += (random.nextDouble() - 0.5) * 0.4;
+        return MathHelper.wrapDegrees((float) yaw);
     }
 
     public static double getYaw(Vec3d pos) {
@@ -194,7 +206,9 @@ public class Rotations {
 
         double diffXZ = Math.sqrt(diffX * diffX + diffZ * diffZ);
 
-        return mc.player.getPitch() + MathHelper.wrapDegrees((float) -Math.toDegrees(Math.atan2(diffY, diffXZ)) - mc.player.getPitch());
+        double pitch = mc.player.getPitch() + MathHelper.wrapDegrees((float) -Math.toDegrees(Math.atan2(diffY, diffXZ)) - mc.player.getPitch());
+        pitch += (random.nextDouble() - 0.5) * 0.3;
+        return MathHelper.clamp((float) pitch, -90f, 90f);
     }
 
     public static double getPitch(Entity entity) {

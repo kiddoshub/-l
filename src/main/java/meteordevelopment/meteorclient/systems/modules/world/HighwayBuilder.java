@@ -1,7 +1,3 @@
-/*
- * This file is part of the Meteor Client distribution (https://github.com/MeteorDevelopment/meteor-client).
- * Copyright (c) Meteor Development.
- */
 
 package meteordevelopment.meteorclient.systems.modules.world;
 
@@ -466,12 +462,10 @@ public class HighwayBuilder extends Module {
         runInMainMenu = true;
     }
 
-    /* todo
         - separate digging and paving more effectively
         - separate walking forwards from the current state to speed up actions
         - scan one block behind you to ensure the highway is still valid
         - do something about god damn lava flowing in
-     */
 
     @Override
     public void onActivate() {
@@ -1746,16 +1740,6 @@ public class HighwayBuilder extends Module {
                 target = null;
             }
 
-            /**
-             * Need to perform the linked injection to ensure that vanilla code does not interfere with us drawing our
-             * bow. The {@link MinecraftClient#handleInputEvents} method is only called when you are not in a screen,
-             * meaning we cannot draw our bow using {@link GameOptions#useKey} since it would not work if you are in a
-             * screen. Similarly, drawing our bow by {@link ClientPlayerInteractionManager#interactItem} would get
-             * cancelled by default within the handleInputEvents method if you do not have the use key held down,
-             * essentially meaning without the following injection it would not work if you don't have a screen open.
-             *
-             * @see meteordevelopment.meteorclient.mixin.MinecraftClientMixin#wrapStopUsing(ClientPlayerInteractionManager, PlayerEntity)
-             */
             @Override
             protected void tick(HighwayBuilder b) {
                 if (cooldown > 0) {
@@ -2240,12 +2224,6 @@ public class HighwayBuilder extends Module {
         MBPIterator getFront();
         MBPIterator getFloor();
 
-        /**
-         * state:
-         *  1 for above the railings,
-         *  0 for the railings themselves,
-         *  -1 for the block under the railings
-         */
         MBPIterator getRailings(int state);
 
         MBPIterator getLiquids();

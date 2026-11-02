@@ -1,7 +1,3 @@
-/*
- * This file is part of the Meteor Client distribution (https://github.com/MeteorDevelopment/meteor-client).
- * Copyright (c) Meteor Development.
- */
 
 package meteordevelopment.meteorclient.utils.world;
 
@@ -231,9 +227,6 @@ public class BlockUtils {
         }
     }
 
-    /**
-     * Needs to be used in {@link TickEvent.Pre}
-     */
     public static boolean breakBlock(BlockPos blockPos, boolean swing) {
         if (!canBreak(blockPos, mc.world.getBlockState(blockPos))) return false;
 
@@ -379,9 +372,6 @@ public class BlockUtils {
         }
     }
 
-    /**
-     * @see net.minecraft.entity.player.PlayerEntity#getBlockBreakingSpeed(BlockState)
-     */
     private static double getBlockBreakingSpeed(int slot, BlockState block) {
         double speed = mc.player.getInventory().getMainStacks().get(slot).getMiningSpeedMultiplier(block);
 
@@ -419,9 +409,6 @@ public class BlockUtils {
         return speed;
     }
 
-    /**
-     * Mutates a {@link BlockPos.Mutable} around an origin
-     */
     public static BlockPos.Mutable mutateAround(BlockPos.Mutable mutable, BlockPos origin, int xOffset, int yOffset, int zOffset) {
         return mutable.set(origin.getX() + xOffset, origin.getY() + yOffset, origin.getZ() + zOffset);
     }

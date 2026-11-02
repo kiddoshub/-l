@@ -1,7 +1,3 @@
-/*
- * This file is part of the Meteor Client distribution (https://github.com/MeteorDevelopment/meteor-client).
- * Copyright (c) Meteor Development.
- */
 
 package meteordevelopment.meteorclient.gui.screens;
 
@@ -28,9 +24,6 @@ import java.util.List;
 
 import static meteordevelopment.meteorclient.MeteorClient.mc;
 
-/*
- * i couldn't figure out how to add proper outer borders for the GUI without adding custom textures.
- */
 public class ContainerInventoryScreen extends Screen {
     private static final Identifier SLOT_TEXTURE = Identifier.ofVanilla("container/slot");
     private static final int SLOT_SIZE = 18;

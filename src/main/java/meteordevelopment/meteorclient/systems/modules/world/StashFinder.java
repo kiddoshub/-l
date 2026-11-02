@@ -1,7 +1,3 @@
-/*
- * This file is part of the Meteor Client distribution (https://github.com/MeteorDevelopment/meteor-client).
- * Copyright (c) Meteor Development.
- */
 
 package meteordevelopment.meteorclient.systems.modules.world;
 
@@ -199,13 +195,14 @@ public class StashFinder extends Module {
         Chunk chunk = new Chunk(event.chunk().getPos());
 
         List<Block> blockBlacklist = blacklistedBlocks.get();
+        Set<Block> blacklistSet = blockBlacklist.isEmpty() ? Collections.emptySet() : new HashSet<>(blockBlacklist);
 
         for (BlockEntity blockEntity : event.chunk().getBlockEntities().values()) {
             if (!storageBlocks.get().contains(blockEntity.getType())) continue;
 
-            if (!blockBlacklist.isEmpty()) {
+            if (!blacklistSet.isEmpty()) {
                 BlockPos below = blockEntity.getPos().down();
-                if (blockBlacklist.contains(event.chunk().getBlockState(below).getBlock())) continue;
+                if (blacklistSet.contains(event.chunk().getBlockState(below).getBlock())) continue;
             }
 
             if (blockEntity instanceof ChestBlockEntity) chunk.chests++;

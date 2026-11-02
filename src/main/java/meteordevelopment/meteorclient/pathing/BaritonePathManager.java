@@ -1,7 +1,3 @@
-/*
- * This file is part of the Meteor Client distribution (https://github.com/MeteorDevelopment/meteor-client).
- * Copyright (c) Meteor Development.
- */
 
 package meteordevelopment.meteorclient.pathing;
 
@@ -218,7 +214,7 @@ public class BaritonePathManager implements IPathManager {
 
         @Override
         public String displayName0() {
-            return "Meteor Client";
+            return "Client33";
         }
     }
 }

@@ -1,7 +1,3 @@
-/*
- * This file is part of the Meteor Client distribution (https://github.com/MeteorDevelopment/meteor-client).
- * Copyright (c) Meteor Development.
- */
 
 package meteordevelopment.meteorclient.systems.modules.player;
 
@@ -115,9 +111,6 @@ public class AutoEat extends Module {
         if (eating) stopEating();
     }
 
-    /**
-     * Main tick handler for the module's eating logic
-     */
     @EventHandler(priority = EventPriority.LOW)
     private void onTick(TickEvent.Pre event) {
         // Don't eat if AutoGap is already eating

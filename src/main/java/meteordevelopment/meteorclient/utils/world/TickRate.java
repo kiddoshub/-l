@@ -1,7 +1,3 @@
-/*
- * This file is part of the Meteor Client distribution (https://github.com/MeteorDevelopment/meteor-client).
- * Copyright (c) Meteor Development.
- */
 
 package meteordevelopment.meteorclient.utils.world;
 
@@ -15,9 +11,6 @@ import net.minecraft.util.math.MathHelper;
 
 import java.util.Arrays;
 
-/**
- * Copied from <a href="https://github.com/S-B99/kamiblue/blob/feature/master/src/main/java/me/zeroeightsix/kami/util/LagCompensator.java">KAMI Blue</a>
- */
 public class TickRate {
     public static TickRate INSTANCE = new TickRate();
 

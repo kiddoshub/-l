@@ -1,7 +1,3 @@
-/*
- * This file is part of the Meteor Client distribution (https://github.com/MeteorDevelopment/meteor-client).
- * Copyright (c) Meteor Development.
- */
 
 package meteordevelopment.meteorclient.utils.notebot.decoder;
 
@@ -44,12 +40,6 @@ public class SongDecoders {
         return hasDecoder(path.toFile());
     }
 
-    /**
-     * Parse file to one of {@link SongDecoder}
-     *
-     * @param file A song file
-     * @return A {@link Song} object
-     */
     @NotNull
     public static Song parse(File file) throws Exception {
         if (!hasDecoder(file)) throw new IllegalStateException("Decoder for this file does not exists!");
@@ -63,11 +53,6 @@ public class SongDecoders {
         return song;
     }
 
-    /**
-     * This method adapts {@link Song} to settings in Notebot module
-     *
-     * @param song A song
-     */
     private static void fixSong(Song song) {
         Notebot notebot = Modules.get().get(Notebot.class);
 

@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "name": "Meteor Client",
-  "id": "meteor-client",
+  "name": "Client33",,
+  "id": "client33",,
   "version": "${version}",
   "description": "Based utility mod.",
   "authors": [
@@ -16,7 +16,7 @@
     "discord": "https://meteorclient.com/discord"
   },
   "license": "GPL-3.0",
-  "icon": "assets/meteor-client/icon.png",
+  "icon": "assets/client33/icon.png",,
   "environment": "client",
   "entrypoints": {
     "client": [
@@ -27,14 +27,14 @@
     ]
   },
   "mixins": [
-    "meteor-client.mixins.json",
-    "meteor-client-baritone.mixins.json",
-    "meteor-client-indigo.mixins.json",
-    "meteor-client-sodium.mixins.json",
-    "meteor-client-lithium.mixins.json",
-    "meteor-client-viafabricplus.mixins.json"
+    "client33.mixins.json",
+    "client33-baritone.mixins.json",
+    "client33-indigo.mixins.json",
+    "client33-sodium.mixins.json",
+    "client33-lithium.mixins.json",
+    "client33-viafabricplus.mixins.json"
   ],
-  "accessWidener": "meteor-client.accesswidener",
+  "accessWidener": "client33.accesswidener",,
   "custom": {
     "meteor-client:build_number": "${build_number}",
     "meteor-client:color": "145,61,226",

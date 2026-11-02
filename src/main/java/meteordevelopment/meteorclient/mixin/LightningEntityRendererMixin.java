@@ -1,7 +1,3 @@
-/*
- * This file is part of the Meteor Client distribution (https://github.com/MeteorDevelopment/meteor-client).
- * Copyright (c) Meteor Development.
- */
 
 package meteordevelopment.meteorclient.mixin;
 
@@ -18,9 +14,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(LightningEntityRenderer.class)
 public abstract class LightningEntityRendererMixin {
-    /**
-     * @author Walaryne
-     */
     @Inject(method = "drawBranch", at = @At(value = "HEAD"), cancellable = true)
     private static void onSetLightningVertex(Matrix4f matrix4f, VertexConsumer vertexConsumer, float f, float g, int i, float h, float j, float k, float l, float m, float n, float o, boolean bl, boolean bl2, boolean bl3, boolean bl4, CallbackInfo ci) {
         Ambience ambience = Modules.get().get(Ambience.class);

@@ -1,7 +1,3 @@
-/*
- * This file is part of the Meteor Client distribution (https://github.com/MeteorDevelopment/meteor-client).
- * Copyright (c) Meteor Development.
- */
 
 package meteordevelopment.meteorclient.systems.modules;
 
@@ -51,7 +47,7 @@ public abstract class Module implements ISerializable<Module>, Comparable<Module
     public boolean favorite = false;
 
     public Module(Category category, String name, String description, String... aliases) {
-        if (name.contains(" ")) MeteorClient.LOG.warn("Module '{}' contains invalid characters in its name making it incompatible with Meteor Client commands.", name);
+        if (name.contains(" ")) MeteorClient.LOG.warn("Module '{}' contains invalid characters in its name making it incompatible with Client33 commands.", name);
 
         this.mc = MinecraftClient.getInstance();
         this.category = category;
@@ -80,8 +76,12 @@ public abstract class Module implements ISerializable<Module>, Comparable<Module
         return null;
     }
 
-    public void onActivate() {}
-    public void onDeactivate() {}
+    public void onActivate() {
+        // Optional cleanup hook for subclasses
+    }
+    public void onDeactivate() {
+        // Optional cleanup hook for subclasses
+    }
 
     public void toggle() {
         if (!active) {
@@ -97,8 +97,11 @@ public abstract class Module implements ISerializable<Module>, Comparable<Module
         }
         else {
             if (runInMainMenu || Utils.canUpdate()) {
-                if (autoSubscribe) MeteorClient.EVENT_BUS.unsubscribe(this);
-                onDeactivate();
+                try {
+                    onDeactivate();
+                } finally {
+                    if (autoSubscribe) MeteorClient.EVENT_BUS.unsubscribe(this);
+                }
             }
 
             active = false;

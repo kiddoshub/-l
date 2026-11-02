@@ -1,7 +1,3 @@
-/*
- * This file is part of the Meteor Client distribution (https://github.com/MeteorDevelopment/meteor-client).
- * Copyright (c) Meteor Development.
- */
 
 package meteordevelopment.meteorclient.systems.modules;
 
@@ -22,7 +18,6 @@ import meteordevelopment.meteorclient.systems.Systems;
 import meteordevelopment.meteorclient.systems.config.Config;
 import meteordevelopment.meteorclient.systems.modules.combat.*;
 import meteordevelopment.meteorclient.systems.modules.misc.*;
-import meteordevelopment.meteorclient.systems.modules.misc.swarm.Swarm;
 import meteordevelopment.meteorclient.systems.modules.movement.*;
 import meteordevelopment.meteorclient.systems.modules.movement.elytrafly.ElytraFly;
 import meteordevelopment.meteorclient.systems.modules.movement.speed.Speed;
@@ -205,10 +200,6 @@ public class Modules extends System<Modules> {
         this.moduleToBind = moduleToBind;
     }
 
-    /***
-     * @see meteordevelopment.meteorclient.commands.commands.BindCommand
-     * For ensuring we don't instantly bind the module to the enter key.
-     */
     public void awaitKeyRelease() {
         this.awaitingKeyRelease = true;
     }
@@ -558,7 +549,6 @@ public class Modules extends System<Modules> {
         add(new BetterBeacons());
         add(new BetterChat());
         add(new BookBot());
-        add(new DiscordPresence());
         add(new InventoryTweaks());
         add(new MessageAura());
         add(new Notebot());
@@ -567,6 +557,5 @@ public class Modules extends System<Modules> {
         add(new ServerSpoof());
         add(new SoundBlocker());
         add(new Spam());
-        add(new Swarm());
     }
 }

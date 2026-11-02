@@ -1,7 +1,3 @@
-/*
- * This file is part of the Meteor Client distribution (https://github.com/MeteorDevelopment/meteor-client).
- * Copyright (c) Meteor Development.
- */
 
 package meteordevelopment.meteorclient.utils;
 
@@ -396,9 +392,6 @@ public class Utils {
         return FILE_NAME_INVALID_CHARS_PATTERN.matcher(getWorldName()).replaceAll("_");
     }
 
-    /**
-     * Use {@link Utils#getFileWorldName()} if you are using the world name as a file/directory name
-     */
     public static String getWorldName() {
         // Singleplayer
         if (mc.isInSingleplayer()) {

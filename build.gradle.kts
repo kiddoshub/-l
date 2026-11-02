@@ -134,7 +134,7 @@ afterEvaluate {
 }
 
 loom {
-    accessWidenerPath = file("src/main/resources/meteor-client.accesswidener")
+    accessWidenerPath = file("src/main/resources/client33.accesswidener")
 }
 
 afterEvaluate {
@@ -212,7 +212,7 @@ publishing {
     publications {
         create<MavenPublication>("mavenJava") {
             from(components["java"])
-            artifactId = "meteor-client"
+            artifactId = "client33"
 
             version = libs.versions.minecraft.get() + "-SNAPSHOT"
         }

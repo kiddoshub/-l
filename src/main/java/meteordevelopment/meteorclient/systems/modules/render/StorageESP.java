@@ -1,7 +1,3 @@
-/*
- * This file is part of the Meteor Client distribution (https://github.com/MeteorDevelopment/meteor-client).
- * Copyright (c) Meteor Development.
- */
 
 package meteordevelopment.meteorclient.systems.modules.render;
 
@@ -39,11 +35,16 @@ import net.minecraft.util.math.Direction;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import net.minecraft.util.math.Vec3d;
 
 public class StorageESP extends Module {
     private final SettingGroup sgGeneral = settings.getDefaultGroup();
     private final SettingGroup sgOpened = settings.createGroup("Opened Rendering");
     private final Set<BlockPos> interactedBlocks = new HashSet<>();
+    private final Map<BlockPos, Long> cachedStorage = new ConcurrentHashMap<>();
+    private final Map<BlockPos, Long> lastSeen = new ConcurrentHashMap<>();
 
     private final Setting<Mode> mode = sgGeneral.add(new EnumSetting.Builder<Mode>()
         .name("mode")
@@ -63,6 +64,23 @@ public class StorageESP extends Module {
         .name("tracers")
         .description("Draws tracers to storage blocks.")
         .defaultValue(false)
+        .build()
+    );
+
+    private final Setting<Boolean> keepInMemory = sgGeneral.add(new BoolSetting.Builder()
+        .name("keep-in-memory")
+        .description("Remember storage blocks even after they go out of view.")
+        .defaultValue(true)
+        .build()
+    );
+
+    private final Setting<Integer> memoryTime = sgGeneral.add(new IntSetting.Builder()
+        .name("memory-time")
+        .description("Time to remember storage blocks in seconds.")
+        .defaultValue(300)
+        .min(0)
+        .sliderMax(600)
+        .visible(keepInMemory::get)
         .build()
     );
 
@@ -185,12 +203,24 @@ public class StorageESP extends Module {
         vertexConsumerProvider = new MeshBuilderVertexConsumerProvider(mesh);
     }
 
+    @Override
+    public void onActivate() {
+        cachedStorage.clear();
+        lastSeen.clear();
+    }
+
+    @Override
+    public void onDeactivate() {
+        cachedStorage.clear();
+        lastSeen.clear();
+    }
+
     private void getBlockEntityColor(BlockEntity blockEntity) {
         render = false;
 
         if (!storageBlocks.get().contains(blockEntity.getType())) return;
 
-        if (blockEntity instanceof TrappedChestBlockEntity) lineColor.set(trappedChest.get()); // Must come before ChestBlockEntity as it is the superclass of TrappedChestBlockEntity
+        if (blockEntity instanceof TrappedChestBlockEntity) lineColor.set(trappedChest.get());
         else if (blockEntity instanceof ChestBlockEntity) lineColor.set(chest.get());
         else if (blockEntity instanceof BarrelBlockEntity) lineColor.set(barrel.get());
         else if (blockEntity instanceof ShulkerBoxBlockEntity) lineColor.set(shulker.get());
@@ -213,7 +243,11 @@ public class StorageESP extends Module {
         // Button to Clear Interacted Blocks
         WButton clear = list.add(theme.button("Clear Rendering Cache")).expandX().widget();
 
-        clear.action = interactedBlocks::clear;
+        clear.action = () -> {
+            interactedBlocks.clear();
+            cachedStorage.clear();
+            lastSeen.clear();
+        };
 
         return list;
     }
@@ -244,55 +278,37 @@ public class StorageESP extends Module {
     private void onRender(Render3DEvent event) {
         count = 0;
 
-        for (BlockEntity blockEntity : Utils.blockEntities()) {
-            // Check if the block has been interacted with (opened)
-            boolean interacted = interactedBlocks.contains(blockEntity.getPos());
-            if (interacted && hideOpened.get()) continue;  // Skip rendering if "hideOpened" is true
-
-            getBlockEntityColor(blockEntity);
-
-            // Set the color to openedColor if its alpha is greater than 0
-            if (interacted && openedColor.get().a > 0) {
-                // openedColor takes precedence.
-                lineColor.set(openedColor.get());
-                sideColor.set(openedColor.get());
-                sideColor.a = fillOpacity.get(); // Maintain fill opacity setting for consistency
+        long now = System.currentTimeMillis();
+        if (keepInMemory.get()) {
+            for (BlockEntity blockEntity : Utils.blockEntities()) {
+                if (isValidStorage(blockEntity)) {
+                    cachedStorage.put(blockEntity.getPos().toImmutable(), now);
+                    lastSeen.put(blockEntity.getPos().toImmutable(), now);
+                }
             }
+            if (memoryTime.get() > 0) {
+                long expire = now - memoryTime.get() * 1000L;
+                cachedStorage.entrySet().removeIf(e -> e.getValue() < expire);
+            }
+        }
 
-            if (render) {
-                double dist = PlayerUtils.squaredDistanceTo(blockEntity.getPos().getX() + 0.5, blockEntity.getPos().getY() + 0.5, blockEntity.getPos().getZ() + 0.5);
-                double a = 1;
-                if (dist <= fadeDistance.get() * fadeDistance.get()) a = dist / (fadeDistance.get() * fadeDistance.get());
+        // Render live block entities
+        for (BlockEntity blockEntity : Utils.blockEntities()) {
+            renderBlockEntity(event, blockEntity, false);
+        }
 
-                if (a < 0.075) continue;
-
-                // Only start a mesh when there's something to render
-                if (count == 0 && mode.get() == Mode.Shader) {
-                    mesh.begin();
+        // Render cached block entities if not seen
+        if (keepInMemory.get()) {
+            for (BlockPos pos : cachedStorage.keySet()) {
+                if (mc.world == null) break;
+                if (lastSeen.containsKey(pos) && (now - lastSeen.get(pos) < 50)) continue;
+                BlockEntity blockEntity = mc.world.getBlockEntity(pos);
+                if (blockEntity != null) {
+                    lastSeen.put(pos, now);
+                    continue;
                 }
-
-                int prevLineA = lineColor.a;
-                int prevSideA = sideColor.a;
-
-                lineColor.a *= a;
-                sideColor.a *= a;
-
-                if (tracers.get()) {
-                    event.renderer.line(RenderUtils.center.x, RenderUtils.center.y, RenderUtils.center.z, blockEntity.getPos().getX() + 0.5, blockEntity.getPos().getY() + 0.5, blockEntity.getPos().getZ() + 0.5, lineColor);
-                }
-
-                if (mode.get() == Mode.Box) {
-                    renderBox(event, blockEntity);
-                }
-
-                if (mode.get() == Mode.Shader) {
-                    renderShader(event, blockEntity);
-                }
-
-                lineColor.a = prevLineA;
-                sideColor.a = prevSideA;
-
-                count++;
+                // Try to render cached position if chunk loaded differently
+                if (mc.world.getChunkManager().isChunkLoaded(pos.getX() >> 4, pos.getZ() >> 4)) continue;
             }
         }
 
@@ -304,6 +320,62 @@ public class StorageESP extends Module {
                 .mesh(mesh, event.matrices)
                 .end()
             );
+        }
+    }
+
+    private boolean isValidStorage(BlockEntity blockEntity) {
+        return storageBlocks.get().contains(blockEntity.getType());
+    }
+
+    private void renderBlockEntity(Render3DEvent event, BlockEntity blockEntity, boolean cached) {
+        // Check if the block has been interacted with (opened)
+        boolean interacted = interactedBlocks.contains(blockEntity.getPos());
+        if (interacted && hideOpened.get()) return;  // Skip rendering if "hideOpened" is true
+
+        getBlockEntityColor(blockEntity);
+
+        // Set the color to openedColor if its alpha is greater than 0
+        if (interacted && openedColor.get().a > 0) {
+            // openedColor takes precedence.
+            lineColor.set(openedColor.get());
+            sideColor.set(openedColor.get());
+            sideColor.a = fillOpacity.get(); // Maintain fill opacity setting for consistency
+        }
+
+        if (render) {
+            double dist = PlayerUtils.squaredDistanceTo(blockEntity.getPos().getX() + 0.5, blockEntity.getPos().getY() + 0.5, blockEntity.getPos().getZ() + 0.5);
+            double a = 1;
+            if (dist <= fadeDistance.get() * fadeDistance.get()) a = Math.sqrt(dist) / fadeDistance.get();
+
+            if (a < 0.075) return;
+
+            // Only start a mesh when there's something to render
+            if (count == 0 && mode.get() == Mode.Shader) {
+                mesh.begin();
+            }
+
+            int prevLineA = lineColor.a;
+            int prevSideA = sideColor.a;
+
+            lineColor.a *= a;
+            sideColor.a *= a;
+
+            if (tracers.get()) {
+                event.renderer.line(RenderUtils.center.x, RenderUtils.center.y, RenderUtils.center.z, blockEntity.getPos().getX() + 0.5, blockEntity.getPos().getY() + 0.5, blockEntity.getPos().getZ() + 0.5, lineColor);
+            }
+
+            if (mode.get() == Mode.Box) {
+                renderBox(event, blockEntity);
+            }
+
+            if (mode.get() == Mode.Shader) {
+                renderShader(event, blockEntity);
+            }
+
+            lineColor.a = prevLineA;
+            sideColor.a = prevSideA;
+
+            count++;
         }
     }
 
